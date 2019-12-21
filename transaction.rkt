@@ -10,7 +10,8 @@
 
 (provide
  (contract-out
-  [process-transaction-history (-> input-port? (listof transaction?))]))
+  [process-transaction-history (-> input-port? (listof transaction?))]
+  [name (-> list? string?)]))
 
 ;; load global variables
 ; write your local path to US Bank transaction history csv file
@@ -46,9 +47,12 @@
 (define (line->transaction line)
   (compose (list
             (lambda (line) (string-split (remove-doublequote line) ","))
-            (lambda (lst) (remove-nths lst 1 3)) ;removing transaction-type, memo column
-            (lambda (lst) (list-update lst 2 string->number)) ;updating amount column to be number
-            (lambda (lst) (list-update lst 1 remove-unnecessary-info))) ;removing unnecessary info from name column
+            ;removing transaction-type, memo column
+            (lambda (lst) (remove-nths lst 1 3))
+             ;updating amount column to be number
+            (lambda (lst) (list-update lst 2 string->number))
+             ;removing unnecessary info from name column
+            (lambda (lst) (list-update lst 1 remove-unnecessary-info)))
            line))
 
 
@@ -95,23 +99,25 @@
            (string-contains? t-name keyword))
          cat-constant))
 
-;; in need of constant modification
-(define (category t)
-  (let ([t-name (name t)])
-    (cond [(cat? t-name FOOD-DRINK) "FOOD-DRINK"]
-          [(cat? t-name LEISURE) "LEISURE"]
-          [(cat? t-name TRANSPORTATION) "TRANSPORTATION"]
-          [(cat? t-name ACADEMICS) "ACADEMICS"]
-          [(cat? t-name VENMO)
-           (if (< (amount t) -50)
-               "VENMO"
-               "FOOD-DRINK")]
-          [(cat? t-name MONTHLY-PAYMENT) "MONTHLY-PAYMENT"]
-          [(cat? t-name GROCERIES) "GROCERIES"]
-          [(cat? t-name SPORTS) "SPORTS"]
-          [(cat? t-name CLOTHING) "CLOTHING"]
-          [else "UNDETERMINED"])))
 
+;; in need of constant modification
+;; (if you modify constants.rkt, you need to modify this as well)
+  (define (category t)
+    (let ([t-name (name t)])
+      (cond [(cat? t-name FOOD-DRINK) "FOOD-DRINK"]
+            [(cat? t-name LEISURE) "LEISURE"]
+            [(cat? t-name TRANSPORTATION) "TRANSPORTATION"]
+            [(cat? t-name ACADEMICS) "ACADEMICS"]
+            [(cat? t-name VENMO)
+             (if (< (amount t) -50)
+                 "VENMO"
+                 "FOOD-DRINK")]
+            [(cat? t-name TUITION) "TUITION"]
+            [(cat? t-name MONTHLY-PAYMENT) "MONTHLY-PAYMENT"]
+            [(cat? t-name GROCERIES) "GROCERIES"]
+            [(cat? t-name SPORTS) "SPORTS"]
+            [(cat? t-name CLOTHING) "CLOTHING"]
+            [else "UNDETERMINED"])))
 
 (define (build-categories th)
   (let ([ht (make-hash)])
@@ -127,7 +133,7 @@
   (for-each (lambda (cat)
                 (printf "Money spent on ~a: ~a~n"
                         cat
-                        (total-spending (hash-ref cat-spending cat))))
+                        (sum-amount (hash-ref cat-spending cat))))
               (hash-keys cat-spending))
   (printf "##################################~n~n"))
 
@@ -139,11 +145,19 @@
          [cat-spending (build-categories spending)])
     (printf "Monthly report for ~a~n" m)
     (printf "Total spending: ~a~n" (sum-amount spending))
+    (printf "Spending without monthly payment: ~a~n"
+            (- (sum-amount spending) (sum-amount (hash-ref cat-spending "MONTHLY-PAYMENT"))))
     (printf "Total income: ~a~n" (sum-amount income))
     (print-spending-per-category cat-spending)
     ;(pretty-print cat-spending)
+
+    (printf "~n#####INCOME#####~n")
     (pretty-print income)
-    (pretty-print (hash-ref cat-spending "UNDETERMINED"))))
+    (printf "################~n")
+
+    (printf "~n#####UNDETERMINED SPENDING#####~n")
+    (pretty-print (hash-ref cat-spending "UNDETERMINED"))
+    (printf "###############################~n")))
 
 (define (search th keyword)
   (filter (lambda (t)
@@ -158,9 +172,9 @@
 ;(income-th th)
 ;(total-spending th)
 ;(monthly-th th 12)
-;(monthly-report th 9)
-;(monthly-report th 10)
-;(monthly-report th 11)
+(monthly-report th 9)
+(monthly-report th 10)
+(monthly-report th 11)
 (monthly-report th 12)
 
 

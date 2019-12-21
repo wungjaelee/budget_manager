@@ -1,5 +1,8 @@
+
 (module constants racket
   (provide (all-defined-out))
+
+  
 
   ;; INCOME CATEGORIES
   (define PARENTS
@@ -10,6 +13,9 @@
     (list "VENMO"))
   
   ;; SPEDNING CATEGORIES
+  (define TUITION
+    (list "WEB AUTHORIZED PMT Northwestern"))
+  
   (define LEISURE
     (list "NARA"
           "SOUND-BAR"
@@ -31,8 +37,6 @@
   (define CLOTHING
     (list "Tory Burch"))
   
-  
-
   (define MONTHLY-PAYMENT
     (list "CHECK"
           "COMED"
