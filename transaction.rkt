@@ -1,4 +1,5 @@
 #lang racket
+(require racket/pretty)
 (require "constants.rkt")
 (require "utils.rkt")
 
@@ -50,16 +51,6 @@
             (lambda (lst) (list-update lst 1 remove-unnecessary-info))) ;removing unnecessary info from name column
            line))
 
-;(define (line->transaction line)
-;  (let ([t-info (string-split (remove-doublequote line) ",")])
-;    (
-;  (list-update 
-;   (list-update (string-split (remove-doublequote line) ",")
-;                4
-;                string->number)
-;   2
-;   extract-info))
-
 
 ;;; accessors to transaction data
 
@@ -93,6 +84,9 @@
 (define (total-income th)
   (apply + (map (lambda (t) (amount t)) (income-th th))))
 
+(define (sum-amount th)
+  (apply + (map (lambda (t) (amount t)) th)))
+
 (define (monthly-th th m)
   (filter (lambda (t) (= (month t) m)) th))
 
@@ -102,47 +96,80 @@
          cat-constant))
 
 ;; in need of constant modification
-(define (category t-name)
-  (cond [(cat? t-name FOOD-DRINK) "FOOD-DRINK"]
-        [(cat? t-name LEISURE) "LEISURE"]
-        [(cat? t-name TRANSPORTATION) "TRANSPORTATION"]
-        [(cat? t-name ACADEMICS) "ACADEMICS"]
-        [else "uncategorized"]))
+(define (category t)
+  (let ([t-name (name t)])
+    (cond [(cat? t-name FOOD-DRINK) "FOOD-DRINK"]
+          [(cat? t-name LEISURE) "LEISURE"]
+          [(cat? t-name TRANSPORTATION) "TRANSPORTATION"]
+          [(cat? t-name ACADEMICS) "ACADEMICS"]
+          [(cat? t-name VENMO)
+           (if (< (amount t) -50)
+               "VENMO"
+               "FOOD-DRINK")]
+          [(cat? t-name MONTHLY-PAYMENT) "MONTHLY-PAYMENT"]
+          [(cat? t-name GROCERIES) "GROCERIES"]
+          [(cat? t-name SPORTS) "SPORTS"]
+          [(cat? t-name CLOTHING) "CLOTHING"]
+          [else "UNDETERMINED"])))
 
-(define (categorize th)
-  (map (lambda (t)
-         (list-update t 2
-                      (lambda (t-name) (cons (category t-name) t-name))))
-       th))
-  
+
+(define (build-categories th)
+  (let ([ht (make-hash)])
+    (for-each (lambda (t)
+                (let ([cat (category t)])
+                  (hash-update! ht cat (lambda (cat-ts) (cons t cat-ts)) '())))
+              th)
+    ht))
+
+
+(define (print-spending-per-category cat-spending)
+  (printf "~n######SPENDING PER CATEGORY#######~n")
+  (for-each (lambda (cat)
+                (printf "Money spent on ~a: ~a~n"
+                        cat
+                        (total-spending (hash-ref cat-spending cat))))
+              (hash-keys cat-spending))
+  (printf "##################################~n~n"))
+
+
 (define (monthly-report th m)
-  (let ([m-th (monthly-th th m)])
+  (let* ([m-th (monthly-th th m)]
+         [spending (spending-th m-th)]
+         [income (income-th m-th)]
+         [cat-spending (build-categories spending)])
     (printf "Monthly report for ~a~n" m)
-    (printf "Total spending: ~a~n" (total-spending m-th))
-    (printf "Total income: ~a~n" (total-income m-th))))
+    (printf "Total spending: ~a~n" (sum-amount spending))
+    (printf "Total income: ~a~n" (sum-amount income))
+    (print-spending-per-category cat-spending)
+    ;(pretty-print cat-spending)
+    (pretty-print income)
+    (pretty-print (hash-ref cat-spending "UNDETERMINED"))))
+
+(define (search th keyword)
+  (filter (lambda (t)
+            (string-contains? (string-upcase (name t))
+                              (string-upcase keyword)))
+          th))
 
 (define th (process-transaction-history in))
-th
+;th
+;(build-categories th) 
 ;(spending-th th)
 ;(income-th th)
 ;(total-spending th)
 ;(monthly-th th 12)
-;(monthly-report th 12)
-;(remove-duplicates (names th))
-;(categorize th)
+;(monthly-report th 9)
+;(monthly-report th 10)
+;(monthly-report th 11)
+(monthly-report th 12)
 
-;; "TARGET" could be living or food-drink
-;; possible categories:
-;; ACADEMICS (UDEMY)
-;; transportation
-;; acad
-
-        
-        
-        
 
 ;TO-DO
-;1. Categorize each transaction into food, clothing, etc.
-;2. Write function for getting monthly transaction
-;3. Write functions for getting total income/spending of given transaction history
-;4. Write function for monthly report (total spending, total income, categorized spending, maybe word of suggestion)
+;1. detect abnormal behavior. For example, venmo spending > 100
+;2. average spending per category
+
+;CHALLENGES
+;1. Graphic UI (with react?)
+;2. Graphs
+;3. Database instead of constants
+;4. AI feature. Word of suggestion based on spending, abnormal behavior, preset goals, etc.
