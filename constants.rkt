@@ -22,7 +22,9 @@
           "YEOWOOSAI"
           "CLASSIC LOUNGE"
           "KABUKI"
-          "THEATRE"))
+          "THEATRE"
+          "APPLE.COM/BILL"
+          "KARAOKE"))
 
   (define TRANSPORTATION
     (list "UBER" "LYFT"))
@@ -52,6 +54,8 @@
 
   (define FOOD-DRINK
     (list "POKE"
+          "COLECTIVO"
+          "NEWPORT"
           "WHOLEFDS"
           "JOONG BOO MARKET"
           "TRADER JOE'S"

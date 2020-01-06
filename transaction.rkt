@@ -15,7 +15,7 @@
 
 ;; load global variables
 ; write your local path to US Bank transaction history csv file
-(define temp-path "/Users/wungjaelee/Everything/가계부/Sep1-Dec20.csv")
+(define temp-path "/Users/wungjaelee/Everything/가계부/dec1-jan05.csv")
 
 (define in (open-input-file temp-path))
 
@@ -149,7 +149,7 @@
             (- (sum-amount spending) (sum-amount (hash-ref cat-spending "MONTHLY-PAYMENT"))))
     (printf "Total income: ~a~n" (sum-amount income))
     (print-spending-per-category cat-spending)
-    ;(pretty-print cat-spending)
+    (pretty-print cat-spending)
 
     (printf "~n#####INCOME#####~n")
     (pretty-print income)
@@ -172,9 +172,9 @@
 ;(income-th th)
 ;(total-spending th)
 ;(monthly-th th 12)
-(monthly-report th 9)
-(monthly-report th 10)
-(monthly-report th 11)
+;(monthly-report th 9)
+;(monthly-report th 10)
+;(monthly-report th 11)
 (monthly-report th 12)
 
 

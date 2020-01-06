@@ -36,6 +36,7 @@
           [else (remove-nth-helper (cdr lst) (sub1 n) (cons (car lst) accum-lst))]))
   (remove-nth-helper lst n '()))
 
+
 (define (remove-nths lst index . indices)
   (define (helper lst indices-to-remove accum-lst curr-idx)
     (cond [(null? lst) (reverse accum-lst)]
